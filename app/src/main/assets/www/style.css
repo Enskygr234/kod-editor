@@ -1,0 +1,109 @@
+:root {
+  --bg: #1e1e1e; --side: #252526; --bar: #181818; --tab: #2d2d2d; --line: #333;
+  --fg: #cccccc; --dim: #858585; --acc: #007acc; --hover: #2a2d2e; --sel: #37373d;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+button { font: inherit; color: inherit; }
+.hidden { display: none !important; }
+.grow { flex: 1; }
+
+#app { display: flex; flex-direction: column; height: 100%; }
+
+/* Üst çubuk */
+#top { display: flex; align-items: stretch; height: 44px; background: var(--bar); border-bottom: 1px solid var(--line); }
+.ib { background: none; border: 0; min-width: 44px; padding: 0 10px; font-size: 18px; color: var(--fg); }
+.ib:active { background: var(--hover); }
+.ib.sm { min-width: 32px; height: 28px; font-size: 13px; padding: 0 6px; border-radius: 4px; }
+#bRun { color: #89d185; }
+#tabs { flex: 1; display: flex; overflow-x: auto; scrollbar-width: none; }
+#tabs::-webkit-scrollbar { display: none; }
+.tab { display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px; background: var(--tab); color: var(--dim);
+  border-right: 1px solid var(--bar); white-space: nowrap; font-size: 13px; flex: none; }
+.tab.on { background: var(--bg); color: #fff; box-shadow: inset 0 2px 0 var(--acc); }
+.tab .x { width: 26px; height: 26px; border: 0; background: none; border-radius: 4px; font-size: 14px; color: inherit; }
+.tab .x:active { background: var(--sel); }
+.tab.dirty .x::before { content: "●"; }
+.tab:not(.dirty) .x::before { content: "✕"; }
+
+/* Ana alan */
+#main { flex: 1; position: relative; display: flex; min-height: 0; }
+#explorer { width: 260px; background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column;
+  position: absolute; top: 0; bottom: 0; left: 0; z-index: 20; transform: translateX(-100%); transition: transform .2s ease; }
+#explorer.open { transform: none; }
+#scrim { position: absolute; inset: 0; background: rgba(0,0,0,.45); z-index: 19; display: none; }
+#explorer.open + #scrim { display: block; }
+@media (min-width: 900px) {
+  #explorer { position: relative; transform: none; display: none; }
+  #explorer.open { display: flex; }
+  #explorer.open + #scrim { display: none; }
+}
+.exhead { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px 8px 14px;
+  font-size: 11px; letter-spacing: 1px; color: var(--dim); }
+#tree { flex: 1; overflow: auto; padding-bottom: 40px; }
+.node { display: flex; align-items: center; height: 34px; padding-right: 4px; color: var(--fg); white-space: nowrap; user-select: none; }
+.node:active, .node.cur { background: var(--sel); }
+.node .ic { width: 22px; text-align: center; flex: none; font-size: 13px; }
+.node .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.node .more { border: 0; background: none; width: 32px; height: 30px; color: var(--dim); font-size: 16px; }
+
+#editorWrap { flex: 1; position: relative; min-width: 0; }
+#editor { position: absolute; inset: 0; }
+#empty, #loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: var(--dim); background: var(--bg); gap: 6px; }
+#empty .logo { font: 700 64px monospace; color: #3c3c3c; }
+#empty button, .box button { background: var(--acc); color: #fff; border: 0; border-radius: 4px; padding: 8px 16px; }
+
+/* Ekstra tuşlar */
+#keys { display: flex; overflow-x: auto; background: var(--side); border-top: 1px solid var(--line); scrollbar-width: none; flex: none; }
+#keys::-webkit-scrollbar { display: none; }
+#keys button { flex: none; min-width: 42px; height: 38px; border: 0; background: none; color: var(--fg);
+  font: 15px "Cascadia Code", "Fira Code", monospace; border-right: 1px solid var(--line); }
+#keys button:active { background: var(--acc); color: #fff; }
+
+/* Durum çubuğu */
+#status { display: flex; gap: 12px; align-items: center; height: 24px; padding: 0 10px; background: var(--acc); color: #fff;
+  font-size: 12px; flex: none; white-space: nowrap; overflow: hidden; }
+#sPath { overflow: hidden; text-overflow: ellipsis; }
+
+/* Açılır menüler */
+.pop { position: fixed; z-index: 50; background: #252526; border: 1px solid #454545; border-radius: 6px; padding: 4px 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5); min-width: 220px; max-height: 70vh; overflow: auto; }
+#menu { top: 44px; right: 6px; }
+#sheet { left: 8px; right: 8px; bottom: 8px; }
+.pop button { display: flex; width: 100%; justify-content: space-between; gap: 20px; padding: 11px 16px; border: 0;
+  background: none; text-align: left; font-size: 14px; }
+.pop button:active { background: #04395e; }
+.pop button small { color: var(--dim); }
+.pop .sep { height: 1px; background: #454545; margin: 4px 0; }
+.pop .ttl { padding: 8px 16px 4px; font-size: 12px; color: var(--dim); }
+.pop .danger { color: #f48771; }
+
+/* Önizleme */
+#preview { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; }
+.phead { display: flex; align-items: center; height: 44px; background: var(--bar); border-bottom: 1px solid var(--line); flex: none; }
+#pTitle { font-size: 13px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#frame { flex: 1; border: 0; background: #fff; width: 100%; }
+#console { height: 34%; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--bg); flex: none; }
+#preview.noconsole #console { display: none; }
+#preview.jsonly #frame { display: none; }
+#preview.jsonly #console { height: auto; flex: 1; }
+.chead { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 4px 12px; font-size: 11px;
+  letter-spacing: 1px; color: var(--dim); border-bottom: 1px solid var(--line); }
+#clog { flex: 1; overflow: auto; font: 12.5px/1.5 "Cascadia Code", "Fira Code", monospace; padding: 4px 0; }
+#clog div { padding: 2px 12px; border-bottom: 1px solid #2a2a2a; white-space: pre-wrap; word-break: break-word; }
+#clog .warn { color: #cca700; background: #332b00; }
+#clog .error { color: #f48771; background: #3a1d1d; }
+#clog .info { color: #75beff; }
+#clog .sys { color: var(--dim); font-style: italic; }
+
+/* Modal */
+#modal { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.5); display: flex; align-items: flex-start;
+  justify-content: center; padding-top: 18vh; }
+.box { background: var(--side); border: 1px solid #454545; border-radius: 8px; padding: 16px; width: min(92vw, 420px); }
+#mTitle { margin-bottom: 10px; }
+#mInput { width: 100%; background: #3c3c3c; border: 1px solid var(--acc); color: #fff; padding: 9px 10px; border-radius: 4px;
+  font: 15px monospace; outline: none; }
+.box .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.box #mCancel { background: #3c3c3c; }

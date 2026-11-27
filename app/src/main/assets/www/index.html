@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, interactive-widget=resizes-content">
+<title>Kod Editör</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <button class="ib" id="bExplorer" title="Dosyalar">☰</button>
+    <div id="tabs"></div>
+    <button class="ib" id="bRun" title="Çalıştır">▶</button>
+    <button class="ib" id="bMenu" title="Menü">⋮</button>
+  </header>
+
+  <main id="main">
+    <aside id="explorer">
+      <div class="exhead">
+        <span>GEZGİN</span>
+        <div>
+          <button class="ib sm" id="bNewFile" title="Yeni dosya">＋📄</button>
+          <button class="ib sm" id="bNewDir" title="Yeni klasör">＋📁</button>
+          <button class="ib sm" id="bImport" title="İçe aktar">⤓</button>
+        </div>
+      </div>
+      <div id="tree"></div>
+    </aside>
+    <div id="scrim"></div>
+    <section id="editorWrap">
+      <div id="editor"></div>
+      <div id="empty">
+        <div class="logo">&lt;/&gt;</div>
+        <p>Dosya açmak için ☰ simgesine dokun</p>
+        <button id="bEmptyNew">Yeni dosya</button>
+      </div>
+      <div id="loading">Editör yükleniyor…</div>
+    </section>
+  </main>
+
+  <div id="keys"></div>
+
+  <footer id="status">
+    <span id="sPath">—</span>
+    <span class="grow"></span>
+    <span id="sSave"></span>
+    <span id="sPos"></span>
+    <span id="sLang"></span>
+  </footer>
+</div>
+
+<div id="menu" class="pop hidden"></div>
+<div id="sheet" class="pop hidden"></div>
+
+<div id="preview" class="hidden">
+  <div class="phead">
+    <button class="ib" id="pClose" title="Kapat">✕</button>
+    <span id="pTitle">Önizleme</span>
+    <span class="grow"></span>
+    <button class="ib" id="pConsoleT" title="Konsol">⌨</button>
+    <button class="ib" id="pReload" title="Yenile">⟳</button>
+  </div>
+  <iframe id="frame" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+  <div id="console">
+    <div class="chead"><span>KONSOL</span><button class="ib sm" id="cClear">Temizle</button></div>
+    <div id="clog"></div>
+  </div>
+</div>
+
+<div id="modal" class="hidden">
+  <div class="box">
+    <div id="mTitle"></div>
+    <input id="mInput" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="row">
+      <button id="mCancel">Vazgeç</button>
+      <button id="mOk" class="primary">Tamam</button>
+    </div>
+  </div>
+</div>
+
+<script src="monaco/vs/loader.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
