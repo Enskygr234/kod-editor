@@ -1,0 +1,8 @@
+[
+  { "id": "snippets", "file": "snippets.js", "name": "Kod parçacıkları", "desc": "HTML, CSS, JS, Python, Kotlin ve Java için hazır kalıplar. Örn. html yaz → ! seç → iskelet gelir." },
+  { "id": "wordcount", "file": "wordcount.js", "name": "Kelime sayacı", "desc": "Durum çubuğunda satır, kelime ve seçim uzunluğunu gösterir." },
+  { "id": "texttools", "file": "texttools.js", "name": "Metin araçları", "desc": "Büyük/küçük harf, satır sıralama, tekrarları silme, ters çevirme, boşluk temizleme." },
+  { "id": "lorem", "file": "lorem.js", "name": "Lorem ipsum", "desc": "Örnek paragraf, isim, e-posta ve renk kodu üretir." },
+  { "id": "colors", "file": "colors.js", "name": "Renk paleti", "desc": "Hazır renk paletinden seçip imlecin olduğu yere renk kodu ekler." },
+  { "id": "clock", "file": "clock.js", "name": "Saat ve odak sayacı", "desc": "Durum çubuğunda saat ve 25 dakikalık odak (Pomodoro) sayacı." }
+]

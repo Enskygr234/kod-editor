@@ -11,8 +11,8 @@ android {
         applicationId = "com.enskygr.kodeditor"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     // Sabit anahtar: her derleme aynı imzayla çıkar, yeni sürüm eskisinin üstüne kurulur.
@@ -38,4 +38,6 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.11.0")
+    implementation("androidx.core:core:1.13.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

@@ -9,7 +9,7 @@
 <body>
 <div id="app">
   <header id="top">
-    <button class="ib" id="bExplorer" title="Dosyalar">☰</button>
+    <button class="ib" id="bExplorer" title="Kenar çubuğu">☰</button>
     <div id="tabs"></div>
     <button class="ib" id="bRun" title="Çalıştır">▶</button>
     <button class="ib" id="bMenu" title="Menü">⋮</button>
@@ -17,15 +17,48 @@
 
   <main id="main">
     <aside id="explorer">
-      <div class="exhead">
-        <span>GEZGİN</span>
-        <div>
-          <button class="ib sm" id="bNewFile" title="Yeni dosya">＋📄</button>
-          <button class="ib sm" id="bNewDir" title="Yeni klasör">＋📁</button>
-          <button class="ib sm" id="bImport" title="İçe aktar">⤓</button>
+      <nav id="ptabs">
+        <button data-v="files" class="on" title="Dosyalar">📁</button>
+        <button data-v="search" title="Projede ara">🔍</button>
+        <button data-v="git" title="GitHub">🔀<i id="gitBadge" class="hidden"></i></button>
+        <button data-v="plugins" title="Eklentiler">🧩</button>
+        <span class="grow"></span>
+        <button id="bSettings" title="Ayarlar">⚙</button>
+      </nav>
+
+      <div class="panel" id="vFiles">
+        <div class="exhead">
+          <span>GEZGİN</span>
+          <div>
+            <button class="ib sm" id="bNewProject" title="Yeni proje">🧪</button>
+            <button class="ib sm" id="bNewFile" title="Yeni dosya">＋📄</button>
+            <button class="ib sm" id="bNewDir" title="Yeni klasör">＋📁</button>
+            <button class="ib sm" id="bImport" title="İçe aktar">⤓</button>
+          </div>
         </div>
+        <div id="tree"></div>
       </div>
-      <div id="tree"></div>
+
+      <div class="panel hidden" id="vSearch">
+        <div class="exhead"><span>PROJEDE ARA</span><span id="sCount"></span></div>
+        <div class="sform">
+          <div class="srow">
+            <input id="qFind" placeholder="Ara" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button class="tg" id="tCase" title="Büyük/küçük harf">Aa</button>
+            <button class="tg" id="tWord" title="Tam kelime">ab</button>
+            <button class="tg" id="tRegex" title="Düzenli ifade">.*</button>
+          </div>
+          <div class="srow">
+            <input id="qRepl" placeholder="Değiştir" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button class="tg" id="bReplAll" title="Tümünü değiştir">⇄</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="qScope"> Yalnızca bu proje klasöründe</label>
+        </div>
+        <div id="sResults"></div>
+      </div>
+
+      <div class="panel hidden" id="vGit"><div id="gitBody" class="pbody"></div></div>
+      <div class="panel hidden" id="vPlugins"><div id="plBody" class="pbody"></div></div>
     </aside>
     <div id="scrim"></div>
     <section id="editorWrap">
@@ -33,7 +66,7 @@
       <div id="empty">
         <div class="logo">&lt;/&gt;</div>
         <p>Dosya açmak için ☰ simgesine dokun</p>
-        <button id="bEmptyNew">Yeni dosya</button>
+        <div class="row"><button id="bEmptyNew">Yeni dosya</button><button id="bEmptyProj">Yeni proje</button></div>
       </div>
       <div id="loading">Editör yükleniyor…</div>
     </section>
@@ -44,6 +77,7 @@
   <footer id="status">
     <span id="sPath">—</span>
     <span class="grow"></span>
+    <span id="sPlug"></span>
     <span id="sSave"></span>
     <span id="sPos"></span>
     <span id="sLang"></span>
@@ -53,10 +87,15 @@
 <div id="menu" class="pop hidden"></div>
 <div id="sheet" class="pop hidden"></div>
 
-<div id="preview" class="hidden">
+<div id="settings" class="full hidden">
+  <div class="phead"><button class="ib" id="setClose">✕</button><span class="ptitle">Ayarlar</span></div>
+  <div id="setBody"></div>
+</div>
+
+<div id="preview" class="full hidden">
   <div class="phead">
     <button class="ib" id="pClose" title="Kapat">✕</button>
-    <span id="pTitle">Önizleme</span>
+    <span id="pTitle" class="ptitle">Önizleme</span>
     <span class="grow"></span>
     <button class="ib" id="pConsoleT" title="Konsol">⌨</button>
     <button class="ib" id="pReload" title="Yenile">⟳</button>
@@ -71,6 +110,7 @@
 <div id="modal" class="hidden">
   <div class="box">
     <div id="mTitle"></div>
+    <div id="mNote"></div>
     <input id="mInput" autocomplete="off" autocapitalize="off" spellcheck="false">
     <div class="row">
       <button id="mCancel">Vazgeç</button>

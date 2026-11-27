@@ -16,6 +16,9 @@ import androidx.webkit.WebViewAssetLoader
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.concurrent.Executors
+import android.provider.Settings
+import androidx.core.content.FileProvider
 
 class MainActivity : Activity() {
 
@@ -86,6 +89,79 @@ class MainActivity : Activity() {
     private fun ok() = JSONObject().put("ok", true).toString()
     private fun err(e: Throwable) = JSONObject().put("ok", false).put("error", e.message ?: e.toString()).toString()
 
+    private val pool = Executors.newFixedThreadPool(2)
+    private val prefs by lazy { getSharedPreferences("git", MODE_PRIVATE) }
+
+    private fun git(): GitOps {
+        val t = prefs.getString("token", "").orEmpty()
+        require(t.isNotBlank()) { "Önce GitHub token'ını gir" }
+        return GitOps(root, File(filesDir, "git"), cacheDir, t)
+    }
+
+    private fun gitOp(op: String, a: JSONObject): JSONObject {
+        val g = git()
+        val folder = a.optString("folder")
+        return when (op) {
+            "me" -> g.me()
+            "repos" -> g.repos()
+            "linked" -> g.linked()
+            "clone" -> g.clone(a.getString("repo"), a.optString("branch"), folder)
+            "link" -> g.link(folder, a.getString("repo"), a.optBoolean("create"), a.optBoolean("private", true))
+            "unlink" -> g.unlink(folder)
+            "status" -> g.status(folder)
+            "push" -> g.push(folder, a.optString("message"))
+            "pull" -> g.pull(folder)
+            "runs" -> g.runs(folder)
+            "dispatch" -> g.dispatch(folder)
+            "apk" -> JSONObject().put("ok", true).put("path", g.apk(folder, a.getLong("id"), File(cacheDir, "apk")).path)
+            else -> throw IllegalArgumentException("Bilinmeyen işlem: $op")
+        }
+    }
+
+    private val binaryExt = setOf("png", "jpg", "jpeg", "gif", "webp", "ico", "bmp", "mp3", "mp4", "wav", "ogg", "zip",
+        "apk", "pdf", "ttf", "woff", "woff2", "exe", "jar", "class", "dex", "keystore", "jks", "so")
+
+    private fun search(a: JSONObject): JSONObject {
+        val q = a.getString("q")
+        require(q.isNotEmpty()) { "Aranacak metni yaz" }
+        var pattern = if (a.optBoolean("regex")) q else Regex.escape(q)
+        if (a.optBoolean("word")) pattern = "\\b(?:$pattern)\\b"
+        val opts = if (a.optBoolean("case")) emptySet() else setOf(RegexOption.IGNORE_CASE)
+        val rx = runCatching { Regex(pattern, opts) }.getOrElse { throw IllegalArgumentException("Geçersiz düzenli ifade") }
+        val start = if (a.optString("folder").isBlank()) root else resolve(a.getString("folder"))
+        val out = JSONArray()
+        var total = 0
+        var truncated = false
+        loop@ for (f in start.walkTopDown().onEnter { it.name != ".git" && it.name != "build" && it.name != "node_modules" }) {
+            if (!f.isFile || f.length() > 1_500_000 || f.extension.lowercase() in binaryExt) continue
+            val text = runCatching { f.readText() }.getOrNull() ?: continue
+            if (text.indexOf('\u0000') >= 0) continue
+            val rel = relOf(f)
+            text.lineSequence().forEachIndexed { i, line ->
+                for (m in rx.findAll(line)) {
+                    if (m.value.isEmpty()) break
+                    out.put(JSONObject().put("p", rel).put("l", i + 1).put("c", m.range.first + 1)
+                        .put("n", m.value.length).put("t", if (line.length > 400) line.take(400) else line))
+                    if (++total >= 2000) { truncated = true; return@forEachIndexed }
+                }
+            }
+            if (truncated) break@loop
+        }
+        return JSONObject().put("ok", true).put("results", out).put("truncated", truncated)
+    }
+
+    private fun install(f: File) {
+        if (!f.exists()) { Toast.makeText(this, "APK bulunamadı", Toast.LENGTH_SHORT).show(); return }
+        if (!packageManager.canRequestPackageInstalls()) {
+            Toast.makeText(this, "Kod Editör'e 'bilinmeyen uygulamaları yükleme' izni ver, sonra tekrar dene", Toast.LENGTH_LONG).show()
+            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+            return
+        }
+        val uri = FileProvider.getUriForFile(this, "$packageName.files", f)
+        startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
     inner class Bridge {
         @JavascriptInterface
         fun list(): String {
@@ -126,6 +202,32 @@ class MainActivity : Activity() {
 
         @JavascriptInterface
         fun toast(msg: String) = runOnUiThread { Toast.makeText(this@MainActivity, msg, Toast.LENGTH_SHORT).show() }
+
+        @JavascriptInterface
+        fun gitHasToken(): Boolean = prefs.getString("token", "").orEmpty().isNotBlank()
+
+        @JavascriptInterface
+        fun gitSetToken(t: String) { prefs.edit().putString("token", t.trim()).apply() }
+
+        @JavascriptInterface
+        fun installApk(path: String) = runOnUiThread { install(File(path)) }
+
+        /** Uzun süren işler: arka planda çalışır, sonuç window.__done(id, json) ile döner. */
+        @JavascriptInterface
+        fun call(id: Int, op: String, argsJson: String) {
+            pool.execute {
+                val result = try {
+                    val a = JSONObject(argsJson)
+                    when (op) {
+                        "search" -> search(a)
+                        else -> gitOp(op, a)
+                    }.toString()
+                } catch (e: Throwable) {
+                    err(e)
+                }
+                runOnUiThread { web.evaluateJavascript("window.__done && __done($id, ${JSONObject.quote(result)})", null) }
+            }
+        }
 
         @JavascriptInterface
         fun importFiles(dir: String) = runOnUiThread {
